@@ -1,19 +1,5 @@
 import csv
 
-def read_excel_manual(filename):
-    # Membaca file excel sederhana dalam bentuk CSV (tanpa menggunakan pandas atau openpyxl)
-    import openpyxl
-    wb = openpyxl.load_workbook(filename)
-    sheet = wb.active
-    data = []
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        data.append({
-            "id": row[0],
-            "service": row[1],
-            "price": row[2]
-        })
-    return data
-
 # Membership Functions
 def triangular(x, a, b, c):
     if x <= a or x >= c:
@@ -38,7 +24,7 @@ def fuzzify_price(x):
         "expensive": triangular(x, 40000, 50000, 55000)
     }
 
-# Nilai skor (output defuzzification centroid dari setiap rule)
+# Skor defuzzifikasi
 score_values = {
     "very_bad": 10,
     "bad": 30,
@@ -47,42 +33,52 @@ score_values = {
     "very_good": 90
 }
 
-# Rule base Fuzzy Inference
+# Fuzzy Inference
 def inference(service, price):
-    rules = []
+    rules = [
+        (min(service["high"], price["cheap"]), "very_good"),
+        (min(service["high"], price["medium"]), "good"),
+        (min(service["high"], price["expensive"]), "fair"),
+        (min(service["medium"], price["cheap"]), "good"),
+        (min(service["medium"], price["medium"]), "fair"),
+        (min(service["medium"], price["expensive"]), "bad"),
+        (min(service["low"], price["cheap"]), "fair"),
+        (min(service["low"], price["medium"]), "bad"),
+        (min(service["low"], price["expensive"]), "very_bad")
+    ]
 
-    # Contoh aturan:
-    rules.append((min(service["high"], price["cheap"]), "very_good"))
-    rules.append((min(service["high"], price["medium"]), "good"))
-    rules.append((min(service["high"], price["expensive"]), "fair"))
-    rules.append((min(service["medium"], price["cheap"]), "good"))
-    rules.append((min(service["medium"], price["medium"]), "fair"))
-    rules.append((min(service["medium"], price["expensive"]), "bad"))
-    rules.append((min(service["low"], price["cheap"]), "fair"))
-    rules.append((min(service["low"], price["medium"]), "bad"))
-    rules.append((min(service["low"], price["expensive"]), "very_bad"))
-
-    # Agregasi (Defuzzifikasi menggunakan metode centroid)
-    numerator = 0
-    denominator = 0
-    for weight, label in rules:
-        val = score_values[label]
-        numerator += weight * val
-        denominator += weight
-
+    numerator = sum(weight * score_values[label] for weight, label in rules)
+    denominator = sum(weight for weight, _ in rules)
     return numerator / denominator if denominator != 0 else 0
 
-def write_to_excel(data, filename):
-    from openpyxl import Workbook
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["ID Restoran", "Service Quality", "Price", "Score"])
-    for d in data:
-        ws.append([d["id"], d["service"], d["price"], round(d["score"], 2)])
-    wb.save(filename)
+# Membaca CSV
+def read_csv(filename):
+    data = []
+    with open(filename, newline='', encoding='utf-8-sig') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=';')
+        reader.fieldnames = [h.strip() for h in reader.fieldnames]
+        for row in reader:
+            data.append({
+                "id": int(row["id Pelanggan"]),
+                "service": float(row["Pelayanan"]),
+                "price": float(row["harga"])
+            })
+    return data
+
+# Menulis CSV
+def write_csv(data, filename):
+    with open(filename, mode='w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';')
+        writer.writerow(["ID Pelanggan", "Pelayanan", "Harga", "Score"])
+        for d in data:
+            writer.writerow([d["id"], d["service"], d["price"], round(d["score"], 2)])
+
+# Fungsi pengambil skor untuk sort
+def ambil_score(item):
+    return item["score"]
 
 def main():
-    data = read_excel_manual("restoran.xlsx")
+    data = read_csv("restoran.csv")
     scored_data = []
 
     for item in data:
@@ -92,13 +88,14 @@ def main():
         item["score"] = score
         scored_data.append(item)
 
-    # Urutkan berdasarkan skor tertinggi
-    top_5 = sorted(scored_data, key=lambda x: x["score"], reverse=True)[:5]
+    # Urutkan berdasarkan skor tertinggi tanpa lambda
+    scored_data.sort(key=ambil_score, reverse=True)
+    top_5 = scored_data[:5]
 
-    # Tulis ke Excel
-    write_to_excel(top_5, "peringkat.xlsx")
+    # Tulis hasil ke file CSV baru
+    write_csv(top_5, "peringkat.csv")
 
-    # Tampilkan
+    # Tampilkan hasil di terminal
     print("Top 5 Restoran Terbaik:")
     for r in top_5:
         print(f"ID: {r['id']}, Service: {r['service']}, Price: {r['price']}, Score: {round(r['score'], 2)}")
