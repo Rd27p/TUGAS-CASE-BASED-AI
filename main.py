@@ -35,21 +35,35 @@ score_values = {
 
 # Fuzzy Inference
 def inference(service, price):
+    # Definisikan semua aturan inferensi fuzzy
     rules = [
-        (min(service["high"], price["cheap"]), "very_good"),
-        (min(service["high"], price["medium"]), "good"),
-        (min(service["high"], price["expensive"]), "fair"),
-        (min(service["medium"], price["cheap"]), "good"),
-        (min(service["medium"], price["medium"]), "fair"),
-        (min(service["medium"], price["expensive"]), "bad"),
-        (min(service["low"], price["cheap"]), "fair"),
-        (min(service["low"], price["medium"]), "bad"),
-        (min(service["low"], price["expensive"]), "very_bad")
+        {"value": min(service["high"], price["cheap"]),     "label": "very_good"},
+        {"value": min(service["high"], price["medium"]),    "label": "good"},
+        {"value": min(service["high"], price["expensive"]), "label": "fair"},
+        {"value": min(service["medium"], price["cheap"]),   "label": "good"},
+        {"value": min(service["medium"], price["medium"]),  "label": "fair"},
+        {"value": min(service["medium"], price["expensive"]), "label": "bad"},
+        {"value": min(service["low"], price["cheap"]),      "label": "fair"},
+        {"value": min(service["low"], price["medium"]),     "label": "bad"},
+        {"value": min(service["low"], price["expensive"]),  "label": "very_bad"}
     ]
 
-    numerator = sum(weight * score_values[label] for weight, label in rules)
-    denominator = sum(weight for weight, _ in rules)
-    return numerator / denominator if denominator != 0 else 0
+    # Hitung numerator dan denominator untuk defuzzifikasi
+    numerator = 0
+    denominator = 0
+
+    for rule in rules:
+        weight = rule["value"]
+        label = rule["label"]
+        numerator += weight * score_values[label]
+        denominator += weight
+
+    # Hasil akhir defuzzifikasi
+    if denominator == 0:
+        return 0
+    else:
+        return numerator / denominator
+
 
 # Membaca CSV
 def read_csv(filename):
@@ -88,7 +102,7 @@ def main():
         item["score"] = score
         scored_data.append(item)
 
-    # Urutkan berdasarkan skor tertinggi tanpa lambda
+    # Urutkan berdasarkan skor tertinggi 
     scored_data.sort(key=ambil_score, reverse=True)
     top_5 = scored_data[:5]
 
