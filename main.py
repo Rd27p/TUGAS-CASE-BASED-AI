@@ -33,9 +33,8 @@ score_values = {
     "very_good": 90
 }
 
-# Fuzzy Inference
+# Fuzzy Inference Rules
 def inference(service, price):
-    # Definisikan semua aturan inferensi fuzzy
     rules = [
         {"value": min(service["high"], price["cheap"]),     "label": "very_good"},
         {"value": min(service["high"], price["medium"]),    "label": "good"},
@@ -47,8 +46,10 @@ def inference(service, price):
         {"value": min(service["low"], price["medium"]),     "label": "bad"},
         {"value": min(service["low"], price["expensive"]),  "label": "very_bad"}
     ]
+    return rules
 
-    # Hitung numerator dan denominator untuk defuzzifikasi
+# Defuzzifikasi (pisah dari inference)
+def defuzzify(rules):
     numerator = 0
     denominator = 0
 
@@ -58,12 +59,10 @@ def inference(service, price):
         numerator += weight * score_values[label]
         denominator += weight
 
-    # Hasil akhir defuzzifikasi
     if denominator == 0:
         return 0
     else:
         return numerator / denominator
-
 
 # Membaca CSV
 def read_csv(filename):
@@ -98,7 +97,8 @@ def main():
     for item in data:
         service_membership = fuzzify_service(item["service"])
         price_membership = fuzzify_price(item["price"])
-        score = inference(service_membership, price_membership)
+        fuzzy_rules = inference(service_membership, price_membership)
+        score = defuzzify(fuzzy_rules)
         item["score"] = score
         scored_data.append(item)
 
