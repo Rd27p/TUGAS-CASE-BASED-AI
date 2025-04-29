@@ -10,6 +10,7 @@ def segitiga(x, a, b, c):
         return (c - x) / (c - b)
     return 0
 
+# Fuzzifikasi
 def fuzzifikasi_pelayanan(x):
     return {
         "rendah": segitiga(x, 0, 30, 50),
@@ -24,7 +25,7 @@ def fuzzifikasi_harga(x):
         "mahal": segitiga(x, 40000, 50000, 55000)
     }
 
-# Nilai skor defuzzifikasi
+# Nilai skor untuk fungsi defuzzifikasi
 nilai_skor = {
     "sangat_buruk": 10,
     "buruk": 30,
@@ -32,6 +33,10 @@ nilai_skor = {
     "baik": 70,
     "sangat_baik": 90
 }
+
+# Fungsi pembulatan
+def pembulatan(angka, digit=2):
+    return round(angka, digit)
 
 # Aturan Inferensi Fuzzy
 def inferensi(pelayanan, harga):
@@ -78,18 +83,19 @@ def baca_csv(nama_file):
             })
     return data
 
-# Menulis CSV
+# Menulis CSV ke file baru
 def tulis_csv(data, nama_file):
     with open(nama_file, mode='w', newline='', encoding='utf-8') as csvfile:
         penulis = csv.writer(csvfile, delimiter=';')
         penulis.writerow(["ID Pelanggan", "Pelayanan", "Harga", "Skor"])
         for d in data:
-            penulis.writerow([d["id"], d["pelayanan"], d["harga"], round(d["skor"], 2)])
+            penulis.writerow([d["id"], d["pelayanan"], d["harga"], pembulatan(d["skor"])])
 
 # Fungsi pengambil skor untuk pengurutan
 def ambil_skor(item):
     return item["skor"]
 
+# Program Utama
 def main():
     data = baca_csv("restoran.csv")
     data_dengan_skor = []
@@ -112,7 +118,7 @@ def main():
     # Tampilkan hasil di terminal
     print("Top 5 Restoran Terbaik:")
     for r in lima_terbaik:
-        print(f"ID: {r['id']}, Pelayanan: {r['pelayanan']}, Harga: {r['harga']}, Skor: {round(r['skor'], 2)}")
+        print(f"ID: {r['id']}, Pelayanan: {r['pelayanan']}, Harga: {r['harga']}, Skor: {pembulatan(r['skor'])}")
 
 if __name__ == "__main__":
     main()
