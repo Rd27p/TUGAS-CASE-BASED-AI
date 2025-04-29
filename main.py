@@ -1,7 +1,7 @@
 import csv
 
-# Membership Functions
-def triangular(x, a, b, c):
+# Fungsi Membership
+def segitiga(x, a, b, c):
     if x <= a or x >= c:
         return 0
     elif a < x < b:
@@ -10,109 +10,109 @@ def triangular(x, a, b, c):
         return (c - x) / (c - b)
     return 0
 
-def fuzzify_service(x):
+def fuzzifikasi_pelayanan(x):
     return {
-        "low": triangular(x, 0, 30, 50),
-        "medium": triangular(x, 30, 50, 70),
-        "high": triangular(x, 50, 70, 100)
+        "rendah": segitiga(x, 0, 30, 50),
+        "sedang": segitiga(x, 30, 50, 70),
+        "tinggi": segitiga(x, 50, 70, 100)
     }
 
-def fuzzify_price(x):
+def fuzzifikasi_harga(x):
     return {
-        "cheap": triangular(x, 25000, 30000, 40000),
-        "medium": triangular(x, 30000, 40000, 50000),
-        "expensive": triangular(x, 40000, 50000, 55000)
+        "murah": segitiga(x, 25000, 30000, 40000),
+        "sedang": segitiga(x, 30000, 40000, 50000),
+        "mahal": segitiga(x, 40000, 50000, 55000)
     }
 
-# Skor defuzzifikasi
-score_values = {
-    "very_bad": 10,
-    "bad": 30,
-    "fair": 50,
-    "good": 70,
-    "very_good": 90
+# Nilai skor defuzzifikasi
+nilai_skor = {
+    "sangat_buruk": 10,
+    "buruk": 30,
+    "cukup": 50,
+    "baik": 70,
+    "sangat_baik": 90
 }
 
-# Fuzzy Inference Rules
-def inference(service, price):
-    rules = [
-        {"value": min(service["high"], price["cheap"]),     "label": "very_good"},
-        {"value": min(service["high"], price["medium"]),    "label": "good"},
-        {"value": min(service["high"], price["expensive"]), "label": "fair"},
-        {"value": min(service["medium"], price["cheap"]),   "label": "good"},
-        {"value": min(service["medium"], price["medium"]),  "label": "fair"},
-        {"value": min(service["medium"], price["expensive"]), "label": "bad"},
-        {"value": min(service["low"], price["cheap"]),      "label": "fair"},
-        {"value": min(service["low"], price["medium"]),     "label": "bad"},
-        {"value": min(service["low"], price["expensive"]),  "label": "very_bad"}
+# Aturan Inferensi Fuzzy
+def inferensi(pelayanan, harga):
+    aturan = [
+        {"nilai": min(pelayanan["tinggi"], harga["murah"]),     "label": "sangat_baik"},
+        {"nilai": min(pelayanan["tinggi"], harga["sedang"]),    "label": "baik"},
+        {"nilai": min(pelayanan["tinggi"], harga["mahal"]),     "label": "cukup"},
+        {"nilai": min(pelayanan["sedang"], harga["murah"]),     "label": "baik"},
+        {"nilai": min(pelayanan["sedang"], harga["sedang"]),    "label": "cukup"},
+        {"nilai": min(pelayanan["sedang"], harga["mahal"]),     "label": "buruk"},
+        {"nilai": min(pelayanan["rendah"], harga["murah"]),     "label": "cukup"},
+        {"nilai": min(pelayanan["rendah"], harga["sedang"]),    "label": "buruk"},
+        {"nilai": min(pelayanan["rendah"], harga["mahal"]),     "label": "sangat_buruk"}
     ]
-    return rules
+    return aturan
 
-# Defuzzifikasi (pisah dari inference)
-def defuzzify(rules):
-    numerator = 0
-    denominator = 0
+# Defuzzifikasi
+def defuzzifikasi(aturan):
+    pembilang = 0
+    penyebut = 0
 
-    for rule in rules:
-        weight = rule["value"]
+    for rule in aturan:
+        bobot = rule["nilai"]
         label = rule["label"]
-        numerator += weight * score_values[label]
-        denominator += weight
+        pembilang += bobot * nilai_skor[label]
+        penyebut += bobot
 
-    if denominator == 0:
+    if penyebut == 0:
         return 0
     else:
-        return numerator / denominator
+        return pembilang / penyebut
 
 # Membaca CSV
-def read_csv(filename):
+def baca_csv(nama_file):
     data = []
-    with open(filename, newline='', encoding='utf-8-sig') as csvfile:
-        reader = csv.DictReader(csvfile, delimiter=';')
-        reader.fieldnames = [h.strip() for h in reader.fieldnames]
-        for row in reader:
+    with open(nama_file, newline='', encoding='utf-8-sig') as csvfile:
+        pembaca = csv.DictReader(csvfile, delimiter=';')
+        pembaca.fieldnames = [h.strip() for h in pembaca.fieldnames]
+        for baris in pembaca:
             data.append({
-                "id": int(row["id Pelanggan"]),
-                "service": float(row["Pelayanan"]),
-                "price": float(row["harga"])
+                "id": int(baris["id Pelanggan"]),
+                "pelayanan": float(baris["Pelayanan"]),
+                "harga": float(baris["harga"])
             })
     return data
 
 # Menulis CSV
-def write_csv(data, filename):
-    with open(filename, mode='w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile, delimiter=';')
-        writer.writerow(["ID Pelanggan", "Pelayanan", "Harga", "Score"])
+def tulis_csv(data, nama_file):
+    with open(nama_file, mode='w', newline='', encoding='utf-8') as csvfile:
+        penulis = csv.writer(csvfile, delimiter=';')
+        penulis.writerow(["ID Pelanggan", "Pelayanan", "Harga", "Skor"])
         for d in data:
-            writer.writerow([d["id"], d["service"], d["price"], round(d["score"], 2)])
+            penulis.writerow([d["id"], d["pelayanan"], d["harga"], round(d["skor"], 2)])
 
-# Fungsi pengambil skor untuk sort
-def ambil_score(item):
-    return item["score"]
+# Fungsi pengambil skor untuk pengurutan
+def ambil_skor(item):
+    return item["skor"]
 
 def main():
-    data = read_csv("restoran.csv")
-    scored_data = []
+    data = baca_csv("restoran.csv")
+    data_dengan_skor = []
 
     for item in data:
-        service_membership = fuzzify_service(item["service"])
-        price_membership = fuzzify_price(item["price"])
-        fuzzy_rules = inference(service_membership, price_membership)
-        score = defuzzify(fuzzy_rules)
-        item["score"] = score
-        scored_data.append(item)
+        keanggotaan_pelayanan = fuzzifikasi_pelayanan(item["pelayanan"])
+        keanggotaan_harga = fuzzifikasi_harga(item["harga"])
+        aturan_fuzzy = inferensi(keanggotaan_pelayanan, keanggotaan_harga)
+        skor = defuzzifikasi(aturan_fuzzy)
+        item["skor"] = skor
+        data_dengan_skor.append(item)
 
     # Urutkan berdasarkan skor tertinggi 
-    scored_data.sort(key=ambil_score, reverse=True)
-    top_5 = scored_data[:5]
+    data_dengan_skor.sort(key=ambil_skor, reverse=True)
+    lima_terbaik = data_dengan_skor[:5]
 
     # Tulis hasil ke file CSV baru
-    write_csv(top_5, "peringkat.csv")
+    tulis_csv(lima_terbaik, "peringkat.csv")
 
     # Tampilkan hasil di terminal
     print("Top 5 Restoran Terbaik:")
-    for r in top_5:
-        print(f"ID: {r['id']}, Service: {r['service']}, Price: {r['price']}, Score: {round(r['score'], 2)}")
+    for r in lima_terbaik:
+        print(f"ID: {r['id']}, Pelayanan: {r['pelayanan']}, Harga: {r['harga']}, Skor: {round(r['skor'], 2)}")
 
 if __name__ == "__main__":
     main()
