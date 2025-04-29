@@ -4,9 +4,9 @@ import csv
 def segitiga(x, a, b, c):
     if x <= a or x >= c:
         return 0
-    elif a < x < b:
+    elif a < x <= b:
         return (x - a) / (b - a)
-    elif b <= x < c:
+    elif b < x <= c:
         return (c - x) / (c - b)
     return 0
 
@@ -27,16 +27,16 @@ def fuzzifikasi_harga(x):
 
 # Nilai skor untuk fungsi defuzzifikasi
 nilai_skor = {
-    "sangat_buruk": 10,
+    "sangat_buruk": 0,
     "buruk": 30,
     "cukup": 50,
     "baik": 70,
-    "sangat_baik": 90
+    "sangat_baik": 100
 }
 
 # Fungsi pembulatan
 def pembulatan(angka, digit=2):
-    return round(angka, digit)
+    return round(angka, digit)  
 
 # Aturan Inferensi Fuzzy
 def inferensi(pelayanan, harga):
