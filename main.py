@@ -36,15 +36,15 @@ nilai_skor = {
 # Aturan Inferensi Fuzzy
 def inferensi(pelayanan, harga):
     aturan = [
-        {"nilai": min(pelayanan["tinggi"], harga["murah"]),     "label": "sangat_baik"},
-        {"nilai": min(pelayanan["tinggi"], harga["sedang"]),    "label": "baik"},
-        {"nilai": min(pelayanan["tinggi"], harga["mahal"]),     "label": "cukup"},
-        {"nilai": min(pelayanan["sedang"], harga["murah"]),     "label": "baik"},
-        {"nilai": min(pelayanan["sedang"], harga["sedang"]),    "label": "cukup"},
-        {"nilai": min(pelayanan["sedang"], harga["mahal"]),     "label": "buruk"},
-        {"nilai": min(pelayanan["rendah"], harga["murah"]),     "label": "cukup"},
-        {"nilai": min(pelayanan["rendah"], harga["sedang"]),    "label": "buruk"},
-        {"nilai": min(pelayanan["rendah"], harga["mahal"]),     "label": "sangat_buruk"}
+        {"nilai": pelayanan["tinggi"] * harga["murah"], "label": "sangat_baik"},
+        {"nilai": pelayanan["tinggi"] * harga["sedang"], "label": "baik"},
+        {"nilai": pelayanan["tinggi"] * harga["mahal"], "label": "cukup"},
+        {"nilai": pelayanan["sedang"] * harga["murah"], "label": "baik"},
+        {"nilai": pelayanan["sedang"] * harga["sedang"], "label": "cukup"},
+        {"nilai": pelayanan["sedang"] * harga["mahal"], "label": "buruk"},
+        {"nilai": pelayanan["rendah"] * harga["murah"], "label": "cukup"},
+        {"nilai": pelayanan["rendah"] * harga["sedang"], "label": "buruk"},
+        {"nilai": pelayanan["rendah"] * harga["mahal"], "label": "sangat_buruk"}
     ]
     return aturan
 
